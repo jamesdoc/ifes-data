@@ -1,0 +1,67 @@
+RewriteEngine on
+
+## Add security for labs
+	AuthType Basic
+	AuthName "Please login"
+	AuthUserFile /var/www/vhosts/ifesworld.org/subdomains/labs/httpdocs/.htpasswd
+	Require valid-user
+
+	SetEnvIf Host labs.ifesworld.org secure_content
+
+	Order Allow,Deny
+	Allow from all
+	Deny from env=secure_content
+
+	Satisfy Any
+
+# Remove www.
+	RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+	RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+
+# Prevent rewriting URIs that exist: (-d directory -f files)
+	RewriteCond %{SCRIPT_FILENAME} !-d
+	RewriteCond %{SCRIPT_FILENAME} !-f
+	
+# HTTPS for secure sections
+	<IfModule !mod_win32.c>
+	RewriteCond %{HTTPS} off
+	#RewriteCond %{REQUEST_URI} (fundtransferrequest|gateway) [NC]
+	RewriteCond %{REQUEST_URI} (fundtransferrequest) [NC]
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R,L]
+	
+	# not anywhere else
+	RewriteCond %{HTTPS} on
+	#RewriteCond %{REQUEST_URI} (fundtransferrequest|gateway) [NC]
+	RewriteCond %{REQUEST_URI} !(fundtransferrequest) [NC]
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^/?(.*) http://%{SERVER_NAME}/$1 [R,L]
+	</IfModule>
+	
+# Remove index.php for CodeIgniter love
+	RewriteCond $1 !^(index\.php|assets|robots\.txt|favicon.ico)
+	RewriteRule ^(.*)$ index.php/$1 [QSA,L]
+
+# Fix IE
+	Header set X-UA-Compatible "IE=Edge"
+	<FilesMatch "\.(js|css|gif|png|jpe?g|pdf|xml|oga|ogg|m4a|ogv|mp4|m4v|webm|svg|svgz|eot|ttf|otf|woff|ico|webp|appcache|manifest|htc|crx|xpi|safariextz|vcf)$" >
+		Header unset X-UA-Compatible
+	</FilesMatch>
+
+# Compress some files before sending them
+	<ifmodule mod_deflate.c>
+		AddOutputFilterByType DEFLATE text/text text/html text/plain text/xml text/css application/xml application/xhtml+xml application/rss+xml application/x-javascript application/javascript
+	</ifmodule>
+
+# Cacheable content
+	<IfModule !mod_win32.c>
+	AddType image/x-icon .ico
+	ExpiresByType image/x-icon "access plus 30 days"
+	ExpiresByType image/ico "access plus 30 days"
+	</IfModule>
+
+# Error pages
+# 404 handled by CI
+	ErrorDocument 403 /assets/error/error_403.htm
