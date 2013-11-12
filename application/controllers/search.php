@@ -34,23 +34,27 @@ class Search extends REST_Controller
 
     function for_get()
     {
-        if(!$this->get('query'))
+
+        if (!$this->get('query')) { $this->response(NULL, 400); }
+        
+        $search_config = (object) array(
+            'query'     => $this->get('query'),
+            'limit'     => 10
+            );
+
+        if($this->get('lang') != null)
         {
-        	$this->response(NULL, 400);
+            $search_config->language = $this->get('lang');
         }
 
-        if(!$this->get('lang'))
+        if($this->get('filter') != null)
         {
-            $lang = 'en';
-        }
-        else
-        {
-            $lang = $this->get('lang');
+            $search_config->filter = $this->get('filter');
         }
 
         $this->load->model('resource_model');
         
-        $search = $this->resource_model->select_search($lang, $this->get('query'));
+        $search = $this->resource_model->select_search($search_config);
     	
         if($search)
         {
