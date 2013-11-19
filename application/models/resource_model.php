@@ -11,7 +11,7 @@ class Resource_model extends CI_Model
 		 *
 		 *	$settings = object array
 		 *	- query = what are we searching for (string)
-		 *	- ilter = resource type to return (string)
+		 *	- filter = resource type to return (string)
 		 *	- language = return a specific language, defaults to English (string)
 		 *	- limit = how many results? Default = 10 (int)
 		 *
